@@ -1041,6 +1041,7 @@ public class ClientCnxn {
             long lastPingRwServer = Time.currentElapsedTime();
             final int MAX_SEND_PING_INTERVAL = 10000; //10 seconds
             InetSocketAddress serverAddress = null;
+            //客户端的状态
             while (state.isAlive()) {
                 try {
                     if (!clientCnxnSocket.isConnected()) {

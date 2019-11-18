@@ -444,13 +444,16 @@ public class ZooKeeper {
 
         watchManager.defaultWatcher = watcher;
 
+        //地址包装
         ConnectStringParser connectStringParser = new ConnectStringParser(
                 connectString);
         HostProvider hostProvider = new StaticHostProvider(
                 connectStringParser.getServerAddresses());
+        //zookeeper的socket i/o管理类，维护了一个server的list
         cnxn = new ClientCnxn(connectStringParser.getChrootPath(),
                 hostProvider, sessionTimeout, this, watchManager,
                 getClientCnxnSocket(), canBeReadOnly);
+        //启动线程
         cnxn.start();
     }
 

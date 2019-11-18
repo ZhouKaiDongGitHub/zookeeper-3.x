@@ -283,17 +283,28 @@ public class ZooKeeperMain {
                  Integer.parseInt(cl.getOption("timeout")),
                  new MyWatcher(), readOnly);
     }
-    
+
+    /**
+     * zookeeper客户端的入口
+     * @param args
+     * @throws KeeperException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public static void main(String args[])
         throws KeeperException, IOException, InterruptedException
     {
+        //解析参数，实例化对象，链接到服务器
         ZooKeeperMain main = new ZooKeeperMain(args);
+        //执行命令行方法
         main.run();
     }
 
     public ZooKeeperMain(String args[]) throws IOException, InterruptedException {
+        //解析参数  1.服务器地址：端口  2.超时时间  3.是否只读
         cl.parseOptions(args);
         System.out.println("Connecting to " + cl.getOption("server"));
+        //实例化对象Zookeeper，链接到服务器
         connectToZK(cl.getOption("server"));
         //zk = new ZooKeeper(cl.getOption("server"),
 //                Integer.parseInt(cl.getOption("timeout")), new MyWatcher());
@@ -329,7 +340,7 @@ public class ZooKeeperMain {
                 String line;
                 Method readLine = consoleC.getMethod("readLine", String.class);
                 while ((line = (String)readLine.invoke(console, getPrompt())) != null) {
-                    executeLine(line);
+                    executeLine(line);//执行命令行的输入
                 }
             } catch (ClassNotFoundException e) {
                 LOG.debug("Unable to start jline", e);
