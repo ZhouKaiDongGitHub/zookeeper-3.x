@@ -120,6 +120,9 @@ public class PrepRequestProcessor extends ZooKeeperCriticalThread implements
     public void run() {
         try {
             while (true) {
+                //这边可能是单机版，也可能是集群处理模式，所以必须考虑的是多线程，同步不可避免
+                //所以，队列我们使用阻塞队列，操作我们也需要保证原子，可见，有序
+                //一下是从队列中获取request，并移除这个request
                 Request request = submittedRequests.take();
                 long traceMask = ZooTrace.CLIENT_REQUEST_TRACE_MASK;
                 if (request.type == OpCode.ping) {

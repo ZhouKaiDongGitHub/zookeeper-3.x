@@ -81,7 +81,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     public void configure(InetSocketAddress addr, int maxcc) throws IOException {
         configureSaslLogin();
 
-        // 把当前类作为线程
+        // 开一个线程，传入当前的对象NIOServerCnxnFactory
         thread = new ZooKeeperThread(this, "NIOServerCxn.Factory:" + addr);
         // java中线程分为两种类型：用户线程和守护线程。
         // 通过Thread.setDaemon(false)设置为用户线程；通过Thread.setDaemon(true)设置为守护线程。
@@ -123,9 +123,16 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
     @Override
     public void startup(ZooKeeperServer zks) throws IOException,
             InterruptedException {
+        //启动守护线程
         start();
+        //NIOServerCnxnFactory中也是有ZookeeperServer对象的，现在赋值之前实例化的那个
+        //同时，也将这个局部变量ZookeeperServer中的NIOServerCnxnFactory赋值当前对象
         setZooKeeperServer(zks);
+        //由于ZookeeperServer负责处理ZookeeperServer客户端问题，
+        // NIOServerCnxnFactory负责处理的是NIO的Socket通讯问题
         zks.startdata();
+        //初始化三个处理器类，并启动着三个处理器类（处理器都是线程）
+        //PrepRequestProcessor SyncRequestProcessor FinalRequestProcessor
         zks.startup();
     }
 

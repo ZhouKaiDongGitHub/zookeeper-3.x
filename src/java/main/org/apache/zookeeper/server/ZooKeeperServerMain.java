@@ -102,13 +102,12 @@ public class ZooKeeperServerMain {
             // so rather than spawning another thread, we will just call
             // run() in this thread.
             // create a file logger url from the command line args
+            //ZookeeperServer就是服务端的核心类
             final ZooKeeperServer zkServer = new ZooKeeperServer();
-            // Registers shutdown handler which will be used to know the
-            // server error or shutdown state changes.
             final CountDownLatch shutdownLatch = new CountDownLatch(1);
             zkServer.registerServerShutdownHandler(
                     new ZooKeeperServerShutdownHandler(shutdownLatch));
-
+            //这边是日志和数据文件工具类，先放着，后面再看
             txnLog = new FileTxnSnapLog(new File(config.dataLogDir), new File(
                     config.dataDir));
             txnLog.setServerStats(zkServer.serverStats());
@@ -116,7 +115,11 @@ public class ZooKeeperServerMain {
             zkServer.setTickTime(config.tickTime);
             zkServer.setMinSessionTimeout(config.minSessionTimeout);
             zkServer.setMaxSessionTimeout(config.maxSessionTimeout);
-            // 获取建立socket工厂，工厂方法模式
+            //ServerCnxn这个名字有点熟悉，类似的是ClientCnxn，这个类中的sendThread中
+            // 的ClientCnxnSocketNIO可是最底层的客户端类
+            //但是这边为什么用工厂模式，工厂是用来创建对象的，这边又为什么工厂创建工厂？
+            // 因为这边不是工厂模式，这边只是生成了
+            // 一个cnxn的工厂，实现类是NIOServerCnxnFactory，也可以是NettyServerCnxnFactory...
             cnxnFactory = ServerCnxnFactory.createFactory();
             // 建立socket,默认是NIOServerCnxnFactory（是一个线程）
             cnxnFactory.configure(config.getClientPortAddress(),
@@ -126,7 +129,6 @@ public class ZooKeeperServerMain {
             // if the server is not running or hits an internal error.
             shutdownLatch.await();
             shutdown();
-
             cnxnFactory.join();
             if (zkServer.canShutdown()) {
                 zkServer.shutdown(true);

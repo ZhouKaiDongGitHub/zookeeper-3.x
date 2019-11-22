@@ -725,6 +725,8 @@ public class ClientCnxn {
     /**
      * This class services the outgoing request queue and generates the heart
      * beats. It also spawns the ReadThread.
+     *
+     * 这个类服务于传出请求队列并生成心跳。它还生成ReadThread
      */
     class SendThread extends ZooKeeperThread {
         private long lastPingSentNs;
@@ -1018,6 +1020,7 @@ public class ClientCnxn {
             }
             logStartConnect(addr);
 
+            // 进行Socket连接
             clientCnxnSocket.connect(addr);
         }
 
@@ -1044,6 +1047,7 @@ public class ClientCnxn {
             //客户端的状态
             while (state.isAlive()) {
                 try {
+                    // 没有连接，进行Socket连接
                     if (!clientCnxnSocket.isConnected()) {
                         if(!isFirstConnect){
                             try {
@@ -1062,6 +1066,7 @@ public class ClientCnxn {
                         } else {
                             serverAddress = hostProvider.next(1000);
                         }
+                        // 进行Socket连接
                         startConnect(serverAddress);
                         clientCnxnSocket.updateLastSendAndHeard();
                     }
@@ -1143,6 +1148,7 @@ public class ClientCnxn {
                         to = Math.min(to, pingRwTimeout - idlePingRwServer);
                     }
 
+                    //连接完毕，进行Socket处理
                     clientCnxnSocket.doTransport(to, pendingQueue, outgoingQueue, ClientCnxn.this);
                 } catch (Throwable e) {
                     if (closing) {
@@ -1405,9 +1411,11 @@ public class ClientCnxn {
             Record response, WatchRegistration watchRegistration)
             throws InterruptedException {
         ReplyHeader r = new ReplyHeader();
+        //Step2:将请求信息和返回信息包装成Packet对象，并加入到队列中。
         Packet packet = queuePacket(h, r, request, response, null, null, null,
                     null, watchRegistration);
         synchronized (packet) {
+            //packet信息不让动，并且让当前线程阻塞等待返回消息
             while (!packet.finished) {
                 packet.wait();
             }
@@ -1462,6 +1470,8 @@ public class ClientCnxn {
                 outgoingQueue.add(packet);
             }
         }
+        //Step3:packet中有所有的信息，现在激活sendThread线程的ClientCnxnSocket对象中的
+        // selecor选择器对队列中的socket进行发送。
         sendThread.getClientCnxnSocket().wakeupCnxn();
         return packet;
     }

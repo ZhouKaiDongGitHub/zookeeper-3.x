@@ -282,8 +282,10 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
     
     @Override
     void connect(InetSocketAddress addr) throws IOException {
+        //创建客户端Socket
         SocketChannel sock = createSock();
         try {
+            //注册SocketChannel并连接
            registerAndConnect(sock, addr);
         } catch (IOException e) {
             LOG.error("Unable to open socket to " + addr);
@@ -354,6 +356,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         // Everything below and until we get back to the select is
         // non blocking, so time is effectively a constant. That is
         // Why we just have to do this once, here
+        // 下面的所有东西直到我们回到select之前都是非阻塞的，所以时间实际上是一个常数。这就是为什么我们只需要在这里做一次
         updateNow();
         for (SelectionKey k : selected) {
             SocketChannel sc = ((SocketChannel) k.channel());

@@ -775,13 +775,15 @@ public class ZooKeeper {
         throws KeeperException, InterruptedException
     {
         final String clientPath = path;
+        //验证路径合理性 顺序节点：路径+“1”进行验证
         PathUtils.validatePath(clientPath, createMode.isSequential());
-
         final String serverPath = prependChroot(clientPath);
-
+        //创建请求信息 唯一标识 节点类型
         RequestHeader h = new RequestHeader();
         h.setType(ZooDefs.OpCode.create);
+        //请求信息  路径 权限 数据
         CreateRequest request = new CreateRequest();
+        //返回信息 节点路径
         CreateResponse response = new CreateResponse();
         request.setData(data);
         request.setFlags(createMode.toFlag());
@@ -790,6 +792,7 @@ public class ZooKeeper {
             throw new KeeperException.InvalidACLException();
         }
         request.setAcl(acl);
+        //Step1:通过Socket客户端请求信息
         ReplyHeader r = cnxn.submitRequest(h, request, response, null);
         if (r.getErr() != 0) {
             throw KeeperException.create(KeeperException.Code.get(r.getErr()),

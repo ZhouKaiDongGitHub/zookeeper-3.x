@@ -687,6 +687,7 @@ public class ZooKeeperMain {
             if (args.length >=2) {
                 connectToZK(args[1]);
             } else {
+
                 connectToZK(host);
             }
         }

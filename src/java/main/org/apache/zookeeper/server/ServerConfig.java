@@ -81,6 +81,7 @@ public class ServerConfig {
 
         // let qpconfig parse the file and then pull the stuff we are
         // interested in
+        // 让qpconfig解析文件，然后提取我们感兴趣的内容
         readFrom(config);
     }
 

@@ -106,6 +106,14 @@ public abstract class ServerCnxnFactory {
     public abstract void closeAll();
     
     static public ServerCnxnFactory createFactory() throws IOException {
+        /**
+         * 这边我怀疑写类的人员脑袋有坑，我们反射是这样用的？反正归根结底两个用途
+         * 1.配合抽象接口和反射解耦，也是spring的核心用途
+         * 2.动态获取改变类的状态而不需要经过类对象的方法。
+         * 但是这边你知道需要生成的类是什么，直接new不行吗？其实显然不行，这边的这个参数ZOOKEEPER_SERVER_CNXN_FACTORY
+         * 是可以动态赋值的，可以是NIOServerCnxnFactory，也可以是nettyServerCnxnFactory，当然他可以用if判断，但是那样真的
+         * 太下乘了。
+         */
         String serverCnxnFactoryName =
             System.getProperty(ZOOKEEPER_SERVER_CNXN_FACTORY);
         if (serverCnxnFactoryName == null) {
