@@ -64,8 +64,8 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
         if (sock == null) {
             throw new IOException("Socket is null!");
         }
-        if (sockKey.isReadable()) {
-            int rc = sock.read(incomingBuffer);
+        if (sockKey.isReadable()) {//可读情况下
+            int rc = sock.read(incomingBuffer);//读到一个缓存区中
             if (rc < 0) {
                 throw new EndOfStreamException(
                         "Unable to read additional data from server sessionid 0x"
@@ -90,7 +90,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                     incomingBuffer = lenBuffer;
                     updateLastHeard();
                     initialized = true;
-                } else {
+                } else {//根据读到的数据判断是ping，event，还是auto验证
                     sendThread.readResponse(incomingBuffer);
                     lenBuffer.clear();
                     incomingBuffer = lenBuffer;
@@ -98,7 +98,7 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                 }
             }
         }
-        if (sockKey.isWritable()) {
+        if (sockKey.isWritable()) {//可写情况下
             synchronized(outgoingQueue) {
                 Packet p = findSendablePacket(outgoingQueue,
                         cnxn.sendThread.clientTunneledAuthenticationInProgress());
@@ -114,15 +114,15 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
                         }
                         p.createBB();
                     }
-                    sock.write(p.bb);
+                    sock.write(p.bb);//写出去
                     if (!p.bb.hasRemaining()) {
                         sentCount++;
-                        outgoingQueue.removeFirstOccurrence(p);
+                        outgoingQueue.removeFirstOccurrence(p);//在outgoingQueue中移除
                         if (p.requestHeader != null
                                 && p.requestHeader.getType() != OpCode.ping
                                 && p.requestHeader.getType() != OpCode.auth) {
                             synchronized (pendingQueue) {
-                                pendingQueue.add(p);
+                                pendingQueue.add(p);//加入到一个正在写队列中
                             }
                         }
                     }
@@ -348,17 +348,16 @@ public class ClientCnxnSocketNIO extends ClientCnxnSocket {
     void doTransport(int waitTimeOut, List<Packet> pendingQueue, LinkedList<Packet> outgoingQueue,
                      ClientCnxn cnxn)
             throws IOException, InterruptedException {
-        selector.select(waitTimeOut);
+        selector.select(waitTimeOut);//轮询Selector
         Set<SelectionKey> selected;
         synchronized (this) {
-            selected = selector.selectedKeys();
+            selected = selector.selectedKeys();//找出可处理的Channal
         }
         // Everything below and until we get back to the select is
         // non blocking, so time is effectively a constant. That is
         // Why we just have to do this once, here
-        // 下面的所有东西直到我们回到select之前都是非阻塞的，所以时间实际上是一个常数。这就是为什么我们只需要在这里做一次
         updateNow();
-        for (SelectionKey k : selected) {
+        for (SelectionKey k : selected) {//处理可处理的Channel
             SocketChannel sc = ((SocketChannel) k.channel());
             if ((k.readyOps() & SelectionKey.OP_CONNECT) != 0) {
                 if (sc.finishConnect()) {

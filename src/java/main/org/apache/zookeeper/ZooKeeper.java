@@ -129,6 +129,8 @@ public class ZooKeeper {
      * We are implementing this as a nested class of ZooKeeper so that
      * the public methods will not be exposed as part of the ZooKeeper client
      * API.
+     * 管理Watch和处理客户端事件的类
+     * 我们将其实现为ZooKeeper的嵌套类，这样就不会将公共方法作为ZooKeeper客户端API的一部分公开。
      */
     private static class ZKWatchManager implements ClientWatchManager {
         private final Map<String, Set<Watcher>> dataWatches =
@@ -1220,6 +1222,7 @@ public class ZooKeeper {
         h.setType(ZooDefs.OpCode.getData);
         GetDataRequest request = new GetDataRequest();
         request.setPath(serverPath);
+        //这边请求信息中只有是否使用watch,而没有包含watch的具体信息
         request.setWatch(watcher != null);
         GetDataResponse response = new GetDataResponse();
         ReplyHeader r = cnxn.submitRequest(h, request, response, wcb);

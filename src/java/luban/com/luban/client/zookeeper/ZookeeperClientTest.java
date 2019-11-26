@@ -18,6 +18,8 @@ public class ZookeeperClientTest {
         init(connect,5000);
         //新增
         create(nodePath,"n1");
+        //某个节点添加监听
+        addWatch(nodePath);
         //递归新增
         createRecursion(nodeChildPath,"n1");
         //查询
@@ -127,5 +129,18 @@ public class ZookeeperClientTest {
         });
         cdl.await();
         System.out.println("init start :" +zookeeper);
+    }
+
+    private static void addWatch(String nodePath) throws KeeperException, InterruptedException {
+        Stat stat = new Stat();
+        byte[] data = zookeeper.getData(nodePath, new Watcher() {
+            @Override
+            public void process(WatchedEvent event) {
+                if(event.getType().equals(Event.EventType.NodeDataChanged)){
+                    System.out.println(nodePath+" 数据发生改变。");
+                }
+            }
+        },stat);
+        System.out.println("改变后的数据为"+data.toString());
     }
 }

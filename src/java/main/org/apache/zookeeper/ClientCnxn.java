@@ -464,7 +464,7 @@ public class ClientCnxn {
             super(makeThreadName("-EventThread"));
             setDaemon(true);
         }
-
+        //将事件添加到waitingEvevts
         public void queueEvent(WatchedEvent event) {
             if (event.getType() == EventType.None
                     && sessionState == event.getState()) {
@@ -501,10 +501,12 @@ public class ClientCnxn {
            try {
               isRunning = true;
               while (true) {
+                  //取出阻塞队列的第一个数据
                  Object event = waitingEvents.take();
                  if (event == eventOfDeath) {
                     wasKilled = true;
                  } else {
+                     //处理事件（客户端）
                     processEvent(event);
                  }
                  if (wasKilled)
@@ -645,6 +647,7 @@ public class ClientCnxn {
 
     private void finishPacket(Packet p) {
         if (p.watchRegistration != null) {
+            System.out.println("Watch Step1:客户端注册watch：packet的watch不为空，注册到map(watchers)");
             p.watchRegistration.register(p.replyHeader.getErr());
         }
 
@@ -741,6 +744,7 @@ public class ClientCnxn {
             ReplyHeader replyHdr = new ReplyHeader();
 
             replyHdr.deserialize(bbia, "header");
+            System.out.println("服务器返回的replyHdr.getXid():"+replyHdr.getXid());
             if (replyHdr.getXid() == -2) {
                 // -2 is the xid for pings
                 if (LOG.isDebugEnabled()) {
@@ -1148,7 +1152,7 @@ public class ClientCnxn {
                         to = Math.min(to, pingRwTimeout - idlePingRwServer);
                     }
 
-                    //连接完毕，进行Socket处理
+                    //连接完毕，进行Socket处理一直
                     clientCnxnSocket.doTransport(to, pendingQueue, outgoingQueue, ClientCnxn.this);
                 } catch (Throwable e) {
                     if (closing) {
