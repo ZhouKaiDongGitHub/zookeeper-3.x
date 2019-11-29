@@ -134,11 +134,11 @@ public class QuorumPeerMain {
       LOG.info("Starting quorum peer");
       try {
           ServerCnxnFactory cnxnFactory = ServerCnxnFactory.createFactory();
+          //打开ServerSocketChannel，注册到Select，绑定监听端口
           cnxnFactory.configure(config.getClientPortAddress(),
                                 config.getMaxClientCnxns());
 
           quorumPeer = getQuorumPeer();
-
           quorumPeer.setQuorumPeers(config.getServers());
           quorumPeer.setTxnFactory(new FileTxnSnapLog(
                   new File(config.getDataLogDir()),
@@ -170,8 +170,9 @@ public class QuorumPeerMain {
 
           quorumPeer.setQuorumCnxnThreadsSize(config.quorumCnxnThreadsSize);
           quorumPeer.initialize();
-
+          //start（）中完成集群几乎所有工作
           quorumPeer.start();
+          //这边是为了不让主线程结束
           quorumPeer.join();
       } catch (InterruptedException e) {
           // warn, but generally this is ok

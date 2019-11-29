@@ -330,7 +330,7 @@ public class Leader {
                         // in LearnerHandler switch to the syncLimit
                         s.setSoTimeout(self.tickTime * self.initLimit);
                         s.setTcpNoDelay(nodelay);
-
+                        //阻塞在这边进行监听，当有Follower链接进来，继续执行，这个s就包括客户端信息
                         BufferedInputStream is = new BufferedInputStream(
                                 s.getInputStream());
                         LearnerHandler fh = new LearnerHandler(s, is, Leader.this);

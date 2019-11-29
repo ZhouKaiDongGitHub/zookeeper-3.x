@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class manages the quorum protocol. There are three states this server
  * can be in:
+ * 这个类管理集群协议，这个线程作为一个服务器服务，有以下三种状态:
  * <ol>
  * <li>Leader election - each server will elect a leader (proposing itself as a
  * leader initially).</li>
@@ -77,7 +78,7 @@ import org.slf4j.LoggerFactory;
  *
  * This class will setup a datagram socket that will always respond with its
  * view of the current leader. The response will take the form of:
- *
+ * 这个类会启动一个数据报Socket，这个Socket将会响应当前Leader，响应会以以下的形式：
  * <pre>
  * int xid;
  *
@@ -89,6 +90,7 @@ import org.slf4j.LoggerFactory;
  * </pre>
  *
  * The request for the current leader will consist solely of an xid: int xid;
+ *
  */
 public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider {
     private static final Logger LOG = LoggerFactory.getLogger(QuorumPeer.class);
@@ -632,9 +634,13 @@ public class QuorumPeer extends ZooKeeperThread implements QuorumStats.Provider 
     
     @Override
     public synchronized void start() {
+        //将目前数据库文件加载到内存
         loadDataBase();
-        cnxnFactory.start();        
+        //启动NIOServerCnxnFactory线程，一直监听是否有读写数据可以读写
+        cnxnFactory.start();
+        //对服务器进行领导者选取，这步完成后，决断出谁是林领导者，谁是跟随者
         startLeaderElection();
+        //启动自身线程，运行run（）方法
         super.start();
     }
 

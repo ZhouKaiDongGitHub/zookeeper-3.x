@@ -222,7 +222,7 @@ public class NIOServerCnxnFactory extends ServerCnxnFactory implements Runnable 
                 Collections.shuffle(selectedList);
                 for (SelectionKey k : selectedList) {
                     if ((k.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-                        // 建立连接
+                        // 收到建立连接的请求
                         SocketChannel sc = ((ServerSocketChannel) k
                                 .channel()).accept();
                         InetAddress ia = sc.socket().getInetAddress();

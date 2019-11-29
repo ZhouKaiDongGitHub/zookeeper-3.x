@@ -17,7 +17,7 @@ public class Client1 implements Runnable{
         CountDownLatch countDownLatch = new CountDownLatch(1);
         ZooKeeper zooKeeper = null;
         try {
-            zooKeeper = new ZooKeeper("127.0.0.1:2181", 50000, new Watcher() {
+            zooKeeper = new ZooKeeper("127.0.0.1:2181", 5000, new Watcher() {
                 @Override
                 public void process(WatchedEvent event) {
                     if(Event.KeeperState.SyncConnected.equals(event.getState())){
@@ -38,8 +38,15 @@ public class Client1 implements Runnable{
         //创建一个节点并且监听
         String path = "/node";
         String data = "node";
-        //String result = zooKeeper.create("/node","node".getBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        // System.out.println("create:"+"["+path+"-->"+data+"],result:"+result);
+        String result = null;
+        try {
+            result = zooKeeper.create("/node","node".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("create:"+"["+path+"-->"+data+"],result:"+result);
         Stat stat = new Stat();
         byte[] info = new byte[0];
         try {
