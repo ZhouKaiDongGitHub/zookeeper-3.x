@@ -123,14 +123,14 @@ public class QuorumCnxManager {
     /*
      * Mapping from Peer to Thread number
      */
-    final ConcurrentHashMap<Long, SendWorker> senderWorkerMap;
-    final ConcurrentHashMap<Long, ArrayBlockingQueue<ByteBuffer>> queueSendMap;
-    final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent;
+    final ConcurrentHashMap<Long, SendWorker> senderWorkerMap;//<朋辈服务器id,对应的发送器>的集合
+    final ConcurrentHashMap<Long, ArrayBlockingQueue<ByteBuffer>> queueSendMap;//<朋辈服务器id，对应的消息队列>的集合
+    final ConcurrentHashMap<Long, ByteBuffer> lastMessageSent;//<朋辈服务器id,发送的最新消息>的集合
 
     /*
      * Reception queue
      */
-    public final ArrayBlockingQueue<Message> recvQueue;
+    public final ArrayBlockingQueue<Message> recvQueue;//本服务器收到的消息队列
     /*
      * Object to synchronize access to recvQueue
      */
@@ -375,6 +375,8 @@ public class QuorumCnxManager {
      * connection if it wins. Notice that it checks whether it has a connection
      * to this server already or not. If it does, then it sends the smallest
      * possible long value to lose the challenge.
+     * 如果这个服务器接收到一个连接请求，那么如果它赢了，它就放弃这个新连接。
+     * 注意，它检查是否已经连接到此服务器。如果是，那么它将发送尽可能小的长值来丢失挑战。
      * 
      */
     public void receiveConnection(final Socket sock) {
@@ -423,11 +425,12 @@ public class QuorumCnxManager {
         }
     }
 
+    //处理连接
     private void handleConnection(Socket sock, DataInputStream din)
             throws IOException {
         Long sid = null;
         try {
-            // Read server id
+            // 获取连接来的服务器id
             sid = din.readLong();
             if (sid < 0) { // this is not a server id but a protocol version (see ZOOKEEPER-1633)
                 sid = din.readLong();
@@ -467,6 +470,7 @@ public class QuorumCnxManager {
         authServer.authenticate(sock, din);
 
         //If wins the challenge, then close the new connection.
+        //如果当前服务器id> 来连接的服务器id,需要断开连接
         if (sid < this.mySid) {
             /*
              * This replica might still believe that the connection to sid is
@@ -482,11 +486,15 @@ public class QuorumCnxManager {
              * Now we start a new connection
              */
             LOG.debug("Create new connection to server: " + sid);
+            //当前服务器id大情况下，先关闭此连接
             closeSocket(sock);
+            //服务器id大的主动再链接服务器id小的
             connectOne(sid);
 
             // Otherwise start worker threads to receive data.
+            //如果当前服务器id < 来连接的服务器id,开启工作
         } else {
+            //发送和接收线程
             SendWorker sw = new SendWorker(sock, sid);
             RecvWorker rw = new RecvWorker(sock, din, sid, sw);
             sw.setRecv(rw);
@@ -738,7 +746,7 @@ public class QuorumCnxManager {
                             .electionAddr.toString());
                     ss.bind(addr);
                     while (!shutdown) {
-                        Socket client = ss.accept();
+                        Socket client = ss.accept();//阻塞在这边等待其他服务器连接
                         setSockOpts(client);
                         LOG.info("Received connection request "
                                 + client.getRemoteSocketAddress());
@@ -751,6 +759,7 @@ public class QuorumCnxManager {
                         if (quorumSaslAuthEnabled) {
                             receiveConnectionAsync(client);
                         } else {
+                            //有一个Socket服务器与之相连，就会监听到并调用一次方法
                             receiveConnection(client);
                         }
 
